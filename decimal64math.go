@@ -125,36 +125,14 @@ func (d Decimal64) Sqrt() Decimal64 {
 	return newFromParts(sign, exp, significand)
 }
 
-// Add computes d + e
-func (ctx Context64) Add(d, e Decimal64) Decimal64 {
-	dp := d.getParts()
-	ep := e.getParts()
-	if dp.isNan() || ep.isNan() {
-		return *propagateNan(&dp, &ep)
-	}
-	if dp.fl == flInf || ep.fl == flInf {
-		if dp.fl != flInf {
-			return e
-		}
-		if ep.fl != flInf || ep.sign == dp.sign {
-			return d
-		}
-		return QNaN64
-	}
-	if dp.significand == 0 {
-		return e
-	} else if ep.significand == 0 {
-		return d
-	}
-
-	//Start here
+func (dp *decParts) Add128(ep *decParts) (decParts, discardedDigit) {
 	ep.removeZeros()
 	dp.removeZeros()
 	ep.updateMag()
 	dp.updateMag()
 	dp.significand128.lo = dp.significand
 	ep.significand128.lo = ep.significand
-	sep := dp.separation(ep)
+	sep := dp.separation(*ep)
 
 	if sep < 0 {
 		dp, ep = ep, dp
@@ -164,7 +142,7 @@ func (ctx Context64) Add(d, e Decimal64) Decimal64 {
 	var ans decParts
 	var rndStatus discardedDigit
 	if sep > 17 {
-		return *dp.dec
+		return *dp, 0
 	} else {
 		ep.removeZeros()
 		epSig := uint128T{ep.significand, 0}
@@ -191,7 +169,9 @@ func (ctx Context64) Add(d, e Decimal64) Decimal64 {
 
 					significand = significand.sub(epSig)
 				} else {
-					return zeroes[dp.sign]
+					ans.significand = 0
+					ans.exp = 0
+					return ans, 0
 				}
 			}
 		}
@@ -205,6 +185,33 @@ func (ctx Context64) Add(d, e Decimal64) Decimal64 {
 	}
 	ans.exp += dp.exp
 	ans.significand = significand.lo
+	return ans, rndStatus
+}
+
+// Add computes d + e
+func (ctx Context64) Add(d, e Decimal64) Decimal64 {
+	dp := d.getParts()
+	ep := e.getParts()
+	if dp.isNan() || ep.isNan() {
+		return *propagateNan(&dp, &ep)
+	}
+	if dp.fl == flInf || ep.fl == flInf {
+		if dp.fl != flInf {
+			return e
+		}
+		if ep.fl != flInf || ep.sign == dp.sign {
+			return d
+		}
+		return QNaN64
+	}
+	if dp.significand == 0 {
+		return e
+	} else if ep.significand == 0 {
+		return d
+	}
+
+	//Start here
+	ans, rndStatus := dp.Add128(&ep)
 	ans.updateMag()
 	if ans.exp < -expOffset {
 		rndStatus = ans.rescale(-expOffset)
