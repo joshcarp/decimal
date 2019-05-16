@@ -495,3 +495,7 @@ func propagateNan(dp, ep *decParts) *Decimal64 {
 	}
 	return ep.dec
 }
+
+func Radix(d Decimal64) int {
+	return 10
+}
