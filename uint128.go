@@ -1,8 +1,9 @@
 package decimal
 
 import (
-	"fmt"
 	"math/bits"
+	"strconv"
+	"strings"
 )
 
 type uint128T struct {
@@ -143,6 +144,15 @@ func (a uint128T) mulBy10() uint128T {
 
 func (a uint128T) mul(b uint128T) uint128T {
 	return umul64(a.hi, b.lo).add(umul64(a.lo, b.hi)).shl(64).add(umul64(a.lo, b.lo))
+}
+func (a uint128T) String() string {
+	bcd := []string{}
+	var digit uint64
+	for (a != uint128T{0, 0}) {
+		a, digit = a.divrem64(10)
+		bcd = append([]string{strconv.Itoa(int(digit))}, bcd...)
+	}
+	return strings.Join(bcd, "")
 }
 
 func (a uint128T) mul64(b uint64) uint128T {
