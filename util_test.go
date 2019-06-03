@@ -81,3 +81,17 @@ func TestUmul64_po10(t *testing.T) {
 		}
 	}
 }
+
+func TestDivide128(t *testing.T) {
+	//  Check that all the multiplications of powers of 10 are the same when divided back down
+	r := require.New(t)
+	for _, element := range powersOf10 {
+		for _, another := range powersOf10 {
+			a := umul64(element, another)
+			divisor := uint128T{element, 0}
+			compare := uint128T{another, 0}
+			b := a.divide(divisor)
+			r.Equal(b, compare)
+		}
+	}
+}
