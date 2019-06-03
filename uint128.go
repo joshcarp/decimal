@@ -202,60 +202,31 @@ type intT struct {
 	bit uint
 }
 
-// func (a intT) divide(b intT) intT {
-// 	q := intT{0}
-// 	r := intT{0}
-// 	numBits := 32 - bits.LeadingZeros(a.bit)
-//help// 	return untT{0}
-// }
-func divide(u uint128T, v uint128T) uint128T {
+func (u uint128T) divide(v uint128T) uint128T {
 	var u0, u1, q0, q1, k uint128T
 	var v1 uint64
 	var n uint
 	if v.hi == 0 { // If v < 2**32:
 		if u.hi > v.lo { // If u/v cannot overflow,
 			return u.div64(v.lo)
-			// just do one division.
-			// & 0xFFFFFFFF;
 		} else { // If u/v would overflow:
-			u1 = uint128T{u.hi, 0} // Break u up into two
-			u0 = uint128T{u.lo, 0} // halves.
-			q1 = u1.div64(v.lo)    // First quotient digit.
-			// & 0xFFFFFFFF;
+			u1 = uint128T{u.hi, 0}             // Break u up into two
+			u0 = uint128T{u.lo, 0}             // halves.
+			q1 = u1.div64(v.lo)                // First quotient digit.
 			k = u1.sub(q1.mul(v))              // First remainder, < v.
 			q0 = k.shl(64).add(u0).div64(v.lo) // 2nd quot. digit.
-			// & 0xFFFFFFFF;
 			return q1.shl(64).add(q0)
 		}
 	}
-	// Here v >= 2**32.
 	n = v.leadingZeros() // 0 <= n <= 31.
 	// n++
-	fmt.Println(n, "n")
-	fmt.Printf("%b\n", v)
 	v1 = v.shl(n).hi // Normalize the divisor
-	fmt.Printf("%b\n", v1)
-	// 1010111110000010100001011100000010010000111110010
-	// 1010011000100111011110011001001000000010010111011
-	// 1010011000100111011110011001001000000010010111011000000000000000
 	v1 = v.hi
-	fmt.Println(v1)
-	// so its MSB is 1.
-	u1 = u.shr(1) // To ensure no overflow.
-	// u1 = u
+	u1 = u.shr(1)     // To ensure no overflow.
 	q1 = u1.div64(v1) // Get quotient from
-	// & 0xFFFFFFFF;            // divide unsigned insn.
-	fmt.Println(q1)
-	fmt.Println(q0)
 
 	q0 = q1.shl(n).shr(63) // Undo normalization and
-	// 0b110001001001101110011001001110
-	// 110001001001101
-	// 824632910
-	// 824632910
-	fmt.Printf("%b\n", q0)
-	// division of u by 2.
-	if q0.lo != 0 { // Make q0 correct or
+	if q0.lo != 0 {        // Make q0 correct or
 		q0 = q0.sub(uint128T{1, 0})
 	} // too small by 1.
 	if u.sub(q0.mul(v)).gt(v) {
