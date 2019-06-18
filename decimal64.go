@@ -17,7 +17,8 @@ const (
 )
 
 const (
-	flNormal flavor = iota
+	flZero flavor = iota
+	flNormal
 	flInf
 	flQNaN
 	flSNaN
@@ -111,7 +112,7 @@ func (dec *decParts) updateMag() {
 
 // updateMag updates the magnitude of the dec object
 func (dec *decParts) isZero() bool {
-	return dec.significand.lo == 0 && dec.fl == flNormal
+	return dec.fl == flZero
 }
 
 // isinf returns true if the decimal is an infinty
@@ -275,6 +276,7 @@ func (d Decimal64) parts() (fl flavor, sign int, exp int, significand uint64) {
 		exp = int((d.bits>>(63-10))&(1<<10-1)) - expOffset
 		significand = d.bits & (1<<53 - 1)
 		if significand == 0 {
+			fl = flZero
 			exp = 0
 		}
 	}
@@ -315,6 +317,7 @@ func (d *Decimal64) getParts() decParts {
 		exp = int((d.bits>>(63-10))&(1<<10-1)) - expOffset
 		significand = d.bits & (1<<53 - 1)
 		if significand == 0 {
+			fl = flZero
 			exp = 0
 		}
 	}
@@ -357,10 +360,9 @@ func expWholeFrac(exp int, significand uint64) (exp2 int, whole uint64, frac uin
 func (d Decimal64) Float64() float64 {
 	flavor, sign, exp, significand := d.parts()
 	switch flavor {
+	case flZero:
+		return 0.0 * float64(1-2*sign)
 	case flNormal:
-		if significand == 0 {
-			return 0.0 * float64(1-2*sign)
-		}
 		if exp&1 == 1 {
 			exp--
 			significand *= 10
@@ -429,7 +431,7 @@ func (d Decimal64) IsSNaN() bool {
 func (d Decimal64) IsInt() bool {
 	fl, _, exp, significand := d.parts()
 	switch fl {
-	case flNormal:
+	case flNormal, flZero:
 		_, _, frac := expWholeFrac(exp, significand)
 		return frac == 0
 	default:
@@ -438,8 +440,8 @@ func (d Decimal64) IsInt() bool {
 }
 
 func (d Decimal64) isZero() bool {
-	fl, _, _, significand := d.parts()
-	return significand == 0 && fl == flNormal
+	fl, _, _, _ := d.parts()
+	return fl == flZero
 }
 
 // Sign returns -1/0/1 depending on whether d is </=/> 0.
