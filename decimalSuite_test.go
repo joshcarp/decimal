@@ -46,12 +46,54 @@ var tests = []string{
 	// 	"dectest/ddMinus.decTest",
 }
 
+var funcnames = []string{
+	"ddAdd",
+	"ddMultiply",
+	"ddFMA",
+	"ddClass",
+	// TODO: Implement following tests
+	"ddCompare",
+	"ddAbs",
+	// "dectest/ddCopysign.decTest",
+	"ddDivide",
+	// 	"dectest/ddLogB.decTest",
+	// 	"dectest/ddMin.decTest",
+	// 	"dectest/ddMinMag.decTest",
+	// 	"dectest/ddMinus.decTest",
+}
+
 func (testVal testCaseStrings) String() string {
 	return fmt.Sprintf("%s %s %v %v %v -> %v\n", testVal.testName, testVal.testFunc, testVal.val1, testVal.val2, testVal.val3, testVal.expectedResult)
 }
 
 var supportedRounding = []string{"half_up", "half_even"}
 var ignoredFunctions = []string{"apply"}
+
+func BenchmarkDecimal1234(b *testing.B) {
+	for i, file := range tests {
+		f, _ := os.Open(file)
+		b.Run(funcnames[i], func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				scanner := bufio.NewScanner(f)
+				var roundingSupported bool
+				var scannedContext Context64
+				for scanner.Scan() {
+					testVal := getInput(scanner.Text())
+					if testVal.rounding != "" {
+						roundingSupported = isInList(testVal.rounding, supportedRounding)
+						if roundingSupported {
+							scannedContext = setRoundingFromString(testVal.rounding)
+						}
+					}
+					if testVal.testFunc != "" && roundingSupported {
+						dec64vals := convertToDec64(testVal)
+						_ = runTest(scannedContext, dec64vals, testVal)
+					}
+				}
+			}
+		})
+	}
+}
 
 // TODO(joshcarp): This test cannot fail. Proper assertions will be added once the whole suite passes
 // TestFromSuite is the master tester for the dectest suite.
