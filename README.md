@@ -10,11 +10,30 @@ More info can be found at:
 <http://speleotrove.com/decimal/>
 
 # Features
-- Decimal64, partial implementation of the ieee-754R standard
-- Half up and half even rounding
-- Up to 3 times faster than arbitrary precision decimal libraries in Go
+- Decimal64, partial implementation of the IEEE-754 2008 standard for base 10 arithmetic
+
+- Math Library tested to decimal standard <http://speleotrove.com/decimal/>:
+	- Add
+	- Multiply
+	- Quotient
+	- FMA
+	- Compare
+	- Class
+
+- Rounding modes
+	- Half up
+	- Half Even
+	More to come...
+
+# Speed
+Simple arithmetic functions, comparing to other Decimal Go libraries:
+	- anz-bank/decimal: 1x
+	- shopspring/decimal: 1.89  // shopspring is the most widley used go decimal library
+	- ericlagergren/decimal: 0.67x (The fastest decimal library, currently)
+
 
 # Goals
+- More optimisations including bit manipulation; currently parts are 'unpacked'; this has quite a large overhead
 - To implement 128 bit decimal
 
 # Installation and use
@@ -57,4 +76,4 @@ This eliminates the decimal fraction problem, as the base is in 10.
 
 # Why fixed precision
 Most implementations of a decimal floating point datatype implement an 'arbitrary precision' type, which often uses an underlying big int. This gives flexibility in that as the number grows, the number of bits assigned to the number grows ( and thus 'arbitrary precision').
-This library is different as it specifies a 64 bit decimal datatype as specified in the ieee-754R standard. This gives the sacrifice of being able to represent arbitrarily large numbers, but is faster than other arbitrary precision libraries.
+This library is different as it specifies a 64 bit decimal datatype as specified in the ieee-754R standard. This gives the sacrifice of being able to represent arbitrarily large numbers, but can be faster than other arbitrary precision libraries. 
