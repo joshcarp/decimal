@@ -9,7 +9,7 @@ type flavor int
 type roundingMode int
 type discardedDigit int
 
-const (
+const ( 
 	eq0 discardedDigit = 1 << iota
 	lt5
 	eq5
