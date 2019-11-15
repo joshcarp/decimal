@@ -6,7 +6,7 @@ import (
 )
 
 type flavor int
-type roundingMode int
+type roundingMode int 
 type discardedDigit int
 
 const (
