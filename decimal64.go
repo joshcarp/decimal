@@ -8,7 +8,7 @@ import (
 type flavor int
 type roundingMode int
 type discardedDigit int
-
+ 
 const (
 	eq0 discardedDigit = 1 << iota
 	lt5
