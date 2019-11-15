@@ -1,8 +1,5 @@
 name: Go
-on: 
-  push:
-    branches: 
-      - master
+on: [pull_request]
 jobs:
 
   build:
@@ -27,6 +24,10 @@ jobs:
             dep ensure
         fi
 
-    - name: Build
+    - name: Test Basic
       run: go test ./...
+
+    - name: Test 32 bit system
+      run: GOARCH=386 go test ./...
+
 
